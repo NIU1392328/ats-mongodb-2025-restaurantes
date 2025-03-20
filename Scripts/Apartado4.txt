@@ -1,0 +1,44 @@
+// APARTADO 4
+
+// 1. Agrupar restaurantes por tipo de comida y calcular la calificación promedio
+db.Restaurants.aggregate([
+  {
+    $group: {
+      _id: "$type_of_food",   
+      Avg: { $avg: "$rating" } 
+    }
+  }
+])
+
+// 2. Agrupar restaurantes por tipo de comida y calcular la calificación promedio
+db.Inspections.aggregate([
+  {
+    $group: {
+      _id: "$result",
+      count: { $sum: 1 }
+    }
+  },
+  {
+    $group: {
+      _id: null,
+      totalInspections: { $sum: "$count" },
+      inspectionsByResult: { $push: { result: "$_id", count: "$count" } }
+    }
+  },
+  {
+    $unwind: "$inspectionsByResult"
+  },
+  {
+    $project: {
+      _id: 0,
+      result: "$inspectionsByResult.result",
+      count: "$inspectionsByResult.count",
+      percentage: {
+        $multiply: [
+          { $divide: ["$inspectionsByResult.count", "$totalInspections"] },
+          100
+        ]
+      }
+    }
+  }
+])

@@ -1,0 +1,44 @@
+// --- APARTADO 5
+
+// Indice campo Result
+db.InspectionsRestaurants.createIndex({ result: 1 })
+
+// Indices campo Date e indice compuesto
+db.InspectionsRestaurants.createIndex({ date: 1 })
+db.InspectionsRestaurants.createIndex({ date: 1, 'restaurant_info.name': 1 })
+
+// Consulta 1
+db.InspectionsRestaurants.find({ result: "Fail" }).explain("executionStats").
+
+//Consulta 2
+db.InspectionsRestaurants.aggregate([
+  {
+    $addFields: {
+      dateConverted: {
+        $dateFromString: {
+          dateString: "$date",
+          format: "%b %d %Y" 
+        }
+      }
+    }
+  },
+  {
+    $match: {
+      dateConverted: {
+        $gte: ISODate("2025-01-01T00:00:00Z"),
+        $lt: ISODate("2026-01-01T00:00:00Z")
+      }
+    }
+  },
+  {
+    $group: {
+      _id: "$restaurant_info.name",  
+      inspections: {
+        $push: {
+          date: "$dateConverted",  
+          restaurant_info: "$restaurant_info" 
+        }
+      }
+    }
+  }
+]).explain("executionStats")

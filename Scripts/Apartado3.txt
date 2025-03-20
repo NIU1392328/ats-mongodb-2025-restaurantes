@@ -1,0 +1,35 @@
+// APARTADO 3
+
+// 1. Buscar todos los restaurantes de un tipo de comida específico (ej. "Chinese")
+
+db.Restaurants.find({ type_of_food: "Chinese" })
+
+// 2. Listar las inspecciones con violaciones, ordenadas por fecha
+
+db.Inspections.aggregate([
+  {
+    $match: {
+      result: "Violation Issued"
+    }
+  },
+  {
+    $addFields: {
+      dateConverted: {
+        $dateFromString: {
+          dateString: "$date",
+          format: "%b %d %Y" 
+        }
+      }
+    }
+  },
+  {
+    $sort: {
+      dateConverted: 1 
+    }
+  }
+])
+
+
+// 3. Encontrar restaurantes con una calificación superior a 4
+
+db.Restaurants.find({ rating: { $gt: 4 } })
